@@ -102,13 +102,10 @@ app.post("/VolumeDriver.Mount", async (request, response) => {
     }
 
     try {
-        let device = await rbd.isMapped(req.Name);
-
-        if (!device) {
-            device = await rbd.map(req.Name);
+        const device  = await rbd.map(req.Name);
+        if (device) {
+            await rbd.mount(device, mountPoint);
         }
-
-        await rbd.mount(device, mountPoint);
     }
     catch (error) {
         return response.json({ Err: error.message });

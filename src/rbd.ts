@@ -11,7 +11,7 @@ export default class Rbd {
     
         try {
             const { stdout, stderr } = await execFile("rbd", ["showmapped", "--format", "json"], { timeout: 30000 });
-            if (stderr) console.log(stderr);
+            if (stderr) throw new Error(stderr);
     
             mapped = JSON.parse(stdout);
         }
@@ -30,6 +30,13 @@ export default class Rbd {
     }
     
     async map(name: string): Promise<string> {
+        let alreadyMapped = await this.isMapped(name);
+
+
+        if (alreadyMapped){
+            return alreadyMapped;
+        }
+
         try {
             const { stdout, stderr } = await execFile("rbd", ["map", "--pool", this.options.pool, name], { timeout: 30000 });
             if (stderr) console.log(stderr);
@@ -40,6 +47,7 @@ export default class Rbd {
             console.error(error);
             throw new Error(`rbd map command failed with code ${error.code}: ${error.message}`);
         }
+        
     }
     
     async unMap(name: string): Promise<void> {
