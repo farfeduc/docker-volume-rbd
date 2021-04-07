@@ -25,6 +25,7 @@
   "homepage": "https://github.com/robkaandorp/docker-volume-rbd#readme",
   "devDependencies": {
     "@types/express": "^4.17.8",
+    "testyts": "^1.2.0",
     "typescript": "^3.9.7"
   },
   "dependencies": {

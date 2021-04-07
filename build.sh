@@ -1,19 +1,21 @@
 #!/bin/bash
 
-docker plugin disable md6fr/rbd:v15.2-v1.0.0 -f
-docker plugin rm md6fr/rbd:v15.2-v1.0.0 -f
+MD6_VERSION=v1.1.0
+CEPH_VERSION=v15.2
+
+docker plugin disable "md6fr/rbd:$CEPH_VERSION-$MD6_VERSION" -f
+docker plugin rm "md6fr/rbd:$CEPH_VERSION-$MD6_VERSION" -f
 rm -rf plugin
 
 git pull
-docker build . -t md6fr/rbd:v15.2-v1.0.0
+docker build . -t "md6fr/rbd:$CEPH_VERSION-$MD6_VERSION"
 
-id=$(docker create md6fr/rbd:v15.2-v1.0.0 true)
+id=$(docker create "md6fr/rbd:$CEPH_VERSION-$MD6_VERSION" true)
 mkdir -p plugin/rootfs
 cp config.json plugin/
 docker export "$id" | sudo tar -x -C plugin/rootfs
 docker rm -vf "$id"
-docker rmi md6fr/rbd:v15.2-v1.0.0
+docker rmi "md6fr/rbd:$CEPH_VERSION-$MD6_VERSION"
 
-docker plugin create md6fr/rbd:v15.2-v1.0.0 plugin/
-docker plugin enable md6fr/rbd:v15.2-v1.0.0
-docker plugin ls
+docker plugin create "md6fr/rbd:$CEPH_VERSION-$MD6_VERSION" plugin/
+docker plugin push "md6fr/rbd:$CEPH_VERSION-$MD6_VERSION"

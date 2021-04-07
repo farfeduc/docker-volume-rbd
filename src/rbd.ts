@@ -28,13 +28,40 @@ export default class Rbd {
 
         return entry.device;
     }
+
+    // Check if remote host has alreaddy mapped the rbd image by checking locks. If lock exists then get lock, else null.
+    async isMappedRemote(name: string): Promise<string> {
+        let locks: any[];
+
+        try {
+            const { stdout, stderr } = await execFile("rbd", ["lock", "ls","--pool", this.options.pool, name, "--format", "json"], { timeout: 30000 });
+            if (stderr) throw new Error(stderr);
+    
+            locks = JSON.parse(stdout);
+        }
+        catch (error) {
+            console.error(error);
+            throw new Error(`rbd locks ls command failed with code ${error.code}: ${error.message}`);
+        }
+
+        if (locks.length === 0){
+            return null
+        }
+
+        return locks[0]
+    }
     
     async map(name: string): Promise<string> {
         let alreadyMapped = await this.isMapped(name);
 
-
         if (alreadyMapped){
             return alreadyMapped;
+        }
+
+        //check if rbd is already mapped elsewhere, if yes then throw to exit.
+        let alreadyMappedRemote = await this.isMappedRemote(name);
+        if (alreadyMappedRemote){
+            throw new Error(`rbd already mapped on another host with lock ${alreadyMappedRemote}`);
         }
 
         try {
@@ -97,15 +124,17 @@ export default class Rbd {
         }
     }
 
-    async makeFilesystem(fstype: string, device: string) {
+    async makeFilesystem(device: string) {
         try {
-            const { stdout, stderr } = await execFile("mkfs", ["-t", fstype, device], { timeout: 120000 });
+            // until xfsprogs 5.11 is not available, we will not be able to use bigtime
+            //const { stdout, stderr } = await execFile("mkfs", ["-t", "xfs", "-m", "bigtime=1", device], { timeout: 120000 });
+            const { stdout, stderr } = await execFile("mkfs", ["-t", "xfs", device], { timeout: 120000 });
             if (stderr) console.error(stderr);
             if (stdout) console.log(stdout);
         }
         catch (error) {
             console.error(error);
-            throw Error(`mkfs -t ${fstype} ${device} command failed with code ${error.code}: ${error.message}`);
+            throw Error(`mkfs -t xfs ${device} command failed with code ${error.code}: ${error.message}`);
         }
     }
 
@@ -125,7 +154,7 @@ export default class Rbd {
         fs.mkdirSync(mountPoint, { recursive: true });
 
         try {
-            const { stdout, stderr } = await execFile("mount", [device, mountPoint], { timeout: 30000 });
+            const { stdout, stderr } = await execFile("mount", [device, mountPoint, "-o", "noatime,nodiratime"], { timeout: 120000 });
             if (stderr) console.error(stderr);
             if (stdout) console.log(stdout);
         }
@@ -137,12 +166,12 @@ export default class Rbd {
 
     async unmount(mountPoint: string): Promise<void> {
         try {
-            const { stdout, stderr } = await execFile("umount", [mountPoint], { timeout: 30000 });
+            const { stdout, stderr } = await execFile("umount", [mountPoint], { timeout: 120000 });
             if (stderr) console.error(stderr);
             if (stdout) console.log(stdout);
         }
         catch (error) {
-            console.error(error);
+            console.error(error); 
             throw new Error(`umount command failed with code ${error.code}: ${error.message}`);
         }
 

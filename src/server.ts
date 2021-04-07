@@ -36,8 +36,7 @@ function getMountPoint(name: string): string {
     called). Opts is a map of driver specific options passed through from the user request.
 */
 app.post("/VolumeDriver.Create", async (request, response) => {
-    const req = request.body as { Name: string, Opts: { size: string, fstype: string } };
-    const fstype = req.Opts?.fstype || "xfs";
+    const req = request.body as { Name: string, Opts: { size: string } };
     const size = req.Opts?.size || "200M";
 
     console.log(`Creating rbd volume ${req.Name}`);
@@ -45,7 +44,7 @@ app.post("/VolumeDriver.Create", async (request, response) => {
     try {
         await rbd.create(req.Name, size);
         let device = await rbd.map(req.Name);
-        await rbd.makeFilesystem(fstype, device);
+        await rbd.makeFilesystem(device);
         await rbd.unMap(req.Name);
     }
     catch (error) {
