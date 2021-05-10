@@ -1,6 +1,6 @@
 #!/bin/bash
 
-MD6_VERSION=v1.1.0
+MD6_VERSION=v1.1.1
 CEPH_VERSION=v15.2
 
 docker plugin disable "md6fr/rbd:$CEPH_VERSION-$MD6_VERSION" -f
