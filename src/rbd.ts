@@ -114,7 +114,7 @@ export default class Rbd {
 
     async create(name: string, size: string): Promise<void> {
         try {
-            const { stdout, stderr } = await execFile("rbd", ["create", "--pool", this.options.pool, name, "--size", size], { timeout: 30000 });
+            const { stdout, stderr } = await execFile("rbd", ["create", "--pool", this.options.pool, name, "--size", size, "--image-feature", "exclusive-lock"], { timeout: 30000 });
             if (stderr) console.log(stderr);
             if (stdout) console.log(stdout);
         }
