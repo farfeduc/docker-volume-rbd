@@ -7,7 +7,7 @@ This plugin uses the official ceph/ceph image with a simple node script as docke
 For normal use, setup the /etc/ceph folder on the host and install with:
 
 ```
-% docker plugin install md6fr/rbd:v15.2-v1.1.1 RBD_CONF_POOL="rbd"
+% docker plugin install md6fr/rbd:v16-v1.1.2 RBD_CONF_POOL="rbd"
 ```
 
 where RBD_CONF_POOL is optional and defaults to "rbd".
@@ -15,24 +15,24 @@ where RBD_CONF_POOL is optional and defaults to "rbd".
 Build with or use the build.sh build script (_do not do this on a production system!_):
 
 ```
-% docker build . -t md6fr/rbd:v15.2-v1.1.1
+% docker build . -t md6fr/rbd:v16-v1.1.2
 
-% id=$(docker create md6fr/rbd:v15.2-v1.1.1 true)
+% id=$(docker create md6fr/rbd:v16-v1.1.2 true)
 % mkdir rootfs
 % docker export "$id" | sudo tar -x -C rootfs
 % docker rm -vf "$id"
-% docker rmi md6fr/rbd:v15.2-v1.1.1
+% docker rmi md6fr/rbd:v16-v1.1.2
 
-% docker plugin create md6fr/rbd:v15.2-v1.1.1 .
+% docker plugin create md6fr/rbd:v16-v1.1.2 .
 % rm -rf rootfs
 
-% docker plugin enable md6fr/rbd:v15.2-v1.1.1
+% docker plugin enable md6fr/rbd:v16-v1.1.2
 ```
 
 Example of how to create a volume:
 
 ```
-% docker volume create -d md6fr/rbd:v15.2-v1.1.1 -o size=150M test2
+% docker volume create -d md6fr/rbd:v16-v1.1.2 -o size=150M test2
 ```
 
 size is optional and default to 200M.
@@ -42,6 +42,9 @@ In my development setup (hyper-v virtualized ceph and docker nodes), the xfs fil
 **WARNING**: do _NOT_ mount a volume on multiple hosts at the same time to prevent filesystem corruption! If you need to share a filesysem between hosts use CephFS or Cifs.
 
 ## Changelog
+
+### v1.1.2
+- Updated ceph version from v15 to v16
 
 ### v1.1.1
 - fix rbd disk creation by enabling by default exclusive-locking feature
